@@ -1,27 +1,110 @@
+(setq inhibit-startup-message t)
+
+(scroll-bar-mode -1) ;; Disable visual scrollbar
+(tool-bar-mode -1) ;; Disable the toolbar
+(tooltip-mode -1) ;; Disable tooltip
+(set-fringe-mode 10) ;; Breathing room
+(menu-bar-mode -1) ;; Disable the menu ba
+
+;; Set up the visible bell
+(setq visible-bell t)
+
+;; Make ESC quit prompts
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+;; Set Font
+(set-face-attribute 'default nil :font "FiraCode Nerd Font Mono" :height 125)
+
+;; Set tab size
+(setq-default indent-tabs-mode nil)
+(setq-default c-default-style "bsd")
+(setq-default c-basic-offset 4)
+(setq-default tab-width 4)
+
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; Use Package
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
-(package-initialize)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
 
-(setq tab-width 4)
-(defvaralias 'c-basic-offset 'tab-width)
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(require 'use-package)
+(setq use-package-always-ensure t)
 
-(tool-bar-mode -1)
-(menu-bar-mode -1)
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+         :map ivy-minibuffer-map
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
 
-(load-theme 'gruvbox t)
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+	 ("C-x b" . counsel-ibuffer)
+	 ("C-x C-f" . counsel-find-file)
+	 :map minibuffer-local-map
+	 ("C-r" . 'counsel-minibuffer-history))
+  :config
+  (setq ivy-initial-inputs-alist nil))
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("d14f3df28603e9517eb8fb7518b662d653b25b26e83bd8e129acea042b774298" default))
- '(package-selected-packages '(gruvbox-theme)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 15)))
+(setq doom-modeline-icon t)
+
+(use-package gruvbox-theme)
+(load-theme 'gruvbox-dark-medium t)
+
+(use-package nerd-icons)
+
+;; Install lsp-mode, company, lsp-ui
+(use-package lsp-mode
+  :ensure t
+  :hook ((c++-mode . lsp)
+         (c-mode . lsp))
+  :commands lsp
+  :config
+  (setq lsp-clients-clangd-executable "clangd"))
+
+(use-package lsp-ui
+  :ensure t
+  :commands lsp-ui-mode)
+
+(use-package company
+  :ensure t
+  :init (global-company-mode))
+
+;; Optional: better UI for completions
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+(global-font-lock-mode 1)
+
+(add-to-list 'auto-mode-alist '("\\.cpp\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.hpp\\'" . c++-mode))
+
+(use-package projectile
+  :diminish projectile-mode
+  :config
+  (projectile-mode)
+  (setq projectile-project-search-path '("~/Projects"))
+  (setq projectile-enable-caching t))
+
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(load custom-file 'noerror)
