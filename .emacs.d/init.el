@@ -38,8 +38,7 @@
 
 (use-package ivy
   :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
+  :bind (:map ivy-minibuffer-map
          ("C-l" . ivy-alt-done)
          ("C-j" . ivy-next-line)
          ("C-k" . ivy-previous-line)
@@ -88,9 +87,15 @@
 
 (use-package company
   :ensure t
-  :init (global-company-mode))
+  :init (global-company-mode)
+  :bind (:map company-active-map    	      
+              ("M-j"    . company-select-next)    	      
+              ("M-k"    . company-select-previous)    	     
+              ([return] . nil)    	      
+              ("RET"    . nil)    	      
+              ([tab]    . company-complete-selection)    	     
+              ("TAB"    . company-complete-selection)))
 
-;; Optional: better UI for completions
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
@@ -105,6 +110,22 @@
   (projectile-mode)
   (setq projectile-project-search-path '("~/Projects"))
   (setq projectile-enable-caching t))
+
+(defun compile-cmake-configure-debug ()
+  (interactive)
+  (compile "cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -S .. -B ../build"))
+
+(defun compile-cmake-configure-release ()
+  (interactive)
+  (compile "cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -S .. -B ../build"))
+
+(defun compile-cmake ()
+  (interactive)
+  (compile "cmake --build ../build"))
+
+(global-set-key [f4] 'compile-cmake-configure-debug)
+(global-set-key [f5] 'compile-cmake)
+(global-set-key [f6] 'compile-cmake-configure-release)
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror)
